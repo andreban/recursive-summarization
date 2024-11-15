@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script type="module" src="/src/main.ts"></script>
+    <title>Summarizer</title>
+    <style>
+      body, html {
+        padding: 0;
+        margin: 0;
+        font-family: "Roboto", sans-serif;
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        margin: 0;
+        background-color: #607D8B;
+        color: white;
+        padding: 8px;
+        font-size: 0.8em;
+        height: 48px;
+      }
+
+      header > h1 {
+        margin: 0;
+        text-transform: uppercase;
+      }
+
+      main {
+        padding: 8px;      
+      }
+
+      #button-wrapper {
+        display: flex;
+        gap: 8px;
+        flex-direction: row;      
+      }
+
+      #content {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      textarea {
+        height: 30vh;
+      }
+
+      #content > button {
+        align-self: flex-end;
+      }
+
+      #output {
+        anchor-name: --output-text;
+      }
+
+      #ai-spinner {
+        position-anchor: --output-text;
+        top: anchor(top);
+        right: anchor(right);
+        position: absolute;
+        width: 26px;
+        height: 26px;
+        --size: 26px;
+        --mask-size: calc(var(--size) / 2);
+        inline-size: var(--size);
+        mask: radial-gradient(closest-side, #0000 calc(100% - .5px), red calc(100% + .5px)) calc(-.5* var(--size)) calc(-.5* var(--size));
+        background: linear-gradient(to top right in oklch, oklch(.54 .22 32.77), oklch(.94 .05 62.95));
+        animation: 1s rotate infinite;
+      }
+
+      @keyframes rotate {
+        100% {
+          rotate: 1turn;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Summarizer</h1>
+    </header>
+    <main id="content">
+      <label for="input">Input:</label>
+      <textarea id="input" placeholder="Add your text here"></textarea>
+
+      <label for="output">Summary:</label>    
+
+      <textarea id="output" disabled></textarea>
+      <div id="ai-spinner"></div>
+
+      <button id="split-it">Summarize</button>    
+    </main>
+  </body>
+</html>
