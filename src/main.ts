@@ -2,6 +2,7 @@ import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
 
 const MAX_TOKENS: number = 800;
 
+const aiSpinner = document.getElementById('ai-spinner') as HTMLDivElement;
 const inputTextArea = document.getElementById('input') as HTMLTextAreaElement;
 const outputTextArea = document.getElementById('output') as HTMLTextAreaElement;
 const button = document.getElementById('split-it') as HTMLButtonElement;
@@ -40,10 +41,12 @@ async function recursiveSummarizer(parts: string[]) {
 }
 
 button.addEventListener('click', async () => {
+    aiSpinner.classList.add('visible');
     const splits = await splitter.splitText(inputTextArea.value);
     console.log(`Split into ${splits.length} parts.`)
     const summary = await recursiveSummarizer(splits);
     console.log(`Summary: ${summary}`);
     outputTextArea.value = summary;
+    aiSpinner.classList.remove('visible');
 });
 
