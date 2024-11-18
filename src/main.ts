@@ -1,4 +1,5 @@
 import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
+import TokenCounter from './TokenCounter';
 
 const MAX_TOKENS: number = 800;
 
@@ -12,7 +13,7 @@ const splitter = new RecursiveCharacterTextSplitter({
     chunkOverlap: 200,
 });
 
-const languageModel = await window.ai.languageModel.create();
+const tokenCounter = await TokenCounter.create();
 const summarizer = await window.ai.summarizer.create({
     format: 'plain-text',
     type: 'tl;dr',
@@ -26,7 +27,7 @@ async function recursiveSummarizer(parts: string[]) {
     for (let i = 0; i < parts.length; i++) {
         console.log(`Summarizing part ${i + 1} of ${parts.length}.`)
         const summarizedPart = await summarizer.summarize(parts[i].trim());
-        if (await languageModel.countPromptTokens([...currentSummary, summarizedPart].join('\n')) > MAX_TOKENS) {
+        if (await tokenCounter.countTokens([...currentSummary, summarizedPart].join('\n')) > MAX_TOKENS) {
             summaries.push(currentSummary.join('\n'));
             currentSummary = [summarizedPart];
         } else {
