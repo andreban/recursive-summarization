@@ -7,6 +7,7 @@ const aiSpinner = document.getElementById('ai-spinner') as HTMLDivElement;
 const inputTextArea = document.getElementById('input') as HTMLTextAreaElement;
 const outputTextArea = document.getElementById('output') as HTMLTextAreaElement;
 const button = document.getElementById('split-it') as HTMLButtonElement;
+const statusSpan = document.getElementById('status') as HTMLSpanElement;
 
 const splitter = new RecursiveCharacterTextSplitter({
     chunkSize: 3000,
@@ -21,11 +22,11 @@ const summarizer = await window.ai.summarizer.create({
 });
 
 async function recursiveSummarizer(parts: string[]) {
-    console.log(`Summarizing ${parts.length} parts.`)
+    statusSpan.innerText = `Summarizing ${parts.length} parts.`;
     let summaries: string[] = [];
     let currentSummary: string[] = [];
     for (let i = 0; i < parts.length; i++) {
-        console.log(`Summarizing part ${i + 1} of ${parts.length}.`)
+        statusSpan.innerText = `Summarizing part ${i + 1} of ${parts.length}.`;
         const summarizedPart = await summarizer.summarize(parts[i].trim());
         if (await tokenCounter.countTokens([...currentSummary, summarizedPart].join('\n')) > MAX_TOKENS) {
             summaries.push(currentSummary.join('\n'));
@@ -42,12 +43,45 @@ async function recursiveSummarizer(parts: string[]) {
 }
 
 button.addEventListener('click', async () => {
+    button.disabled = true;
+    inputTextArea.disabled = true;
     aiSpinner.classList.add('visible');
     const splits = await splitter.splitText(inputTextArea.value);
-    console.log(`Split into ${splits.length} parts.`)
+    statusSpan.innerText = `Split into ${splits.length} parts.`
     const summary = await recursiveSummarizer(splits);
-    console.log(`Summary: ${summary}`);
     outputTextArea.value = summary;
     aiSpinner.classList.remove('visible');
+    statusSpan.innerText = 'Done!';
+    button.disabled = false;
+    inputTextArea.disabled = false;
 });
 
+const checkSummarizerSupport = async (): Promise<boolean> => {
+    // Do a first capabilities check. If 'no' is returned, it might mean the model hasn't been
+    // bootstrapped by calling `create()`. In this case, `create()` is called, which should result
+    // in an exception being raised. The exception is ignored, but now `capabilities()` should
+    // reflect the actual state of the API, with `no` meaning the device is unable to run the API.
+    let capabilites = await window.ai.summarizer.capabilities();
+    if (capabilites.available === 'readily' || capabilites.available === 'after-download') {
+      return true;
+    }
+  
+    try {
+      await window.ai.summarizer.create();
+    } catch (e) { }
+  
+    capabilites = await window.ai.summarizer.capabilities();
+    return capabilites.available !== 'no';
+  }
+
+  if (window.ai && window.ai.summarizer) {
+    if (await checkSummarizerSupport()) {
+        button.disabled = false;
+        inputTextArea.disabled = false;
+        statusSpan.innerText = `Awaiting for input.`;    
+    } else {
+        statusSpan.innerText = `Your device doesn't support the Summarizer API.`;    
+    }
+  } else {
+    statusSpan.innerText = `Your browser doesn't support the Summarizer API.`;    
+  }

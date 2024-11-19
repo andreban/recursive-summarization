@@ -4,13 +4,22 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="origin-trial" content="ArQsiGngzy7JRQvJI3s043lEH6u/TxbHNvJ1nZPif3OIOINvsCa3ueshwfGkvSIFY3Q2OF5mdw4Xld+rmWwCzgcAAACEeyJvcmlnaW4iOiJodHRwczovL3JlY3Vyc2l2ZS1zdW1tYXJpemF0aW9uLTk2Mjc3NDI2NDk2NS51cy1jZW50cmFsMS5ydW4uYXBwOjQ0MyIsImZlYXR1cmUiOiJBSVN1bW1hcml6YXRpb25BUEkiLCJleHBpcnkiOjE3NTMxNDI0MDB9">
     <script type="module" src="/src/main.ts"></script>
     <title>Summarizer</title>
     <style>
+      *, *:before, *:after {
+        box-sizing: border-box;
+      }
+
       body, html {
         padding: 0;
         margin: 0;
+        width: 100vw;
+        height: 100vh;
         font-family: "Roboto", sans-serif;
+        display: flex;
+        flex-direction: column;
       }
 
       header {
@@ -29,12 +38,28 @@
         margin: 0 auto;
         max-width: 1024px;
         width: 100%;
-      }      
+      }
 
       main {
         padding: 8px;
         margin: 0 auto;
         max-width: 1024px;
+        width: 100%;
+        flex-grow: 1;
+      }
+
+      footer {
+        padding: 4px;
+        background-color: #607D8B;
+        color: #fff;
+        text-transform: uppercase;
+        font-size: 0.8em;
+      }
+
+      footer > div {
+        margin: 0 auto;
+        max-width: 1024px;
+        width: 100%;
       }
 
       button {
@@ -111,14 +136,17 @@
     </header>
     <main id="content">
       <label for="input">Input:</label>
-      <textarea id="input" placeholder="Add your text here"></textarea>
+      <textarea id="input" placeholder="Add your text here" disabled></textarea>
 
       <label for="output">Summary:</label>    
 
       <textarea id="output" disabled></textarea>
       <div id="ai-spinner"></div>
 
-      <button id="split-it">Summarize</button>    
+      <button id="split-it" disabled>Summarize</button>    
     </main>
+    <footer>
+      <div><span id="status">Idle</span></div>
+    </footer>
   </body>
 </html>
