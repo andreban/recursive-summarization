@@ -15,19 +15,14 @@ const splitter = new RecursiveCharacterTextSplitter({
 });
 
 const tokenCounter = await TokenCounter.create();
-const summarizer = await window.ai.summarizer.create({
-    format: 'plain-text',
-    type: 'tl;dr',
-    length: 'long',
-});
-
+let summarizer;
 async function recursiveSummarizer(parts: string[]) {
     statusSpan.innerText = `Summarizing ${parts.length} parts.`;
     let summaries: string[] = [];
     let currentSummary: string[] = [];
     for (let i = 0; i < parts.length; i++) {
         statusSpan.innerText = `Summarizing part ${i + 1} of ${parts.length}.`;
-        const summarizedPart = await summarizer.summarize(parts[i].trim());
+        const summarizedPart = await summarizer!.summarize(parts[i].trim());
         if (await tokenCounter.countTokens([...currentSummary, summarizedPart].join('\n')) > MAX_TOKENS) {
             summaries.push(currentSummary.join('\n'));
             currentSummary = [summarizedPart];
@@ -37,7 +32,7 @@ async function recursiveSummarizer(parts: string[]) {
     }
     summaries.push(currentSummary.join('\n'));
     if (summaries.length == 1) {
-        return await summarizer.summarize(summaries[0]);
+        return await summarizer!.summarize(summaries[0]);
     }
     return recursiveSummarizer(summaries);
 }
@@ -68,7 +63,9 @@ const checkSummarizerSupport = async (): Promise<boolean> => {
   
     try {
       await window.ai.summarizer.create();
-    } catch (e) { }
+    } catch (e) {
+        console.log(e);
+    }
   
     capabilites = await window.ai.summarizer.capabilities();
     return capabilites.available !== 'no';
@@ -76,10 +73,31 @@ const checkSummarizerSupport = async (): Promise<boolean> => {
 
   if (window.ai && window.ai.summarizer) {
     if (await checkSummarizerSupport()) {
+        // Check capabilities here so the user can be warned about the model download.
+        const capabilites = await window.ai.summarizer.capabilities();
+        if (capabilites.available === 'after-download') {
+            statusSpan.innerText = `Hold on, Chrome is downloading the model. This can take a few minutes..`;    
+        } else {
+            statusSpan.innerText = `Getting the model ready.`;
+        }
+
+        const modelDownloadCallback = (e: DownloadProgressEvent) => {
+            statusSpan.innerText = `Hold on, Chrome is downloading the model. Progress: ${e.loaded} of ${e.total}.`;
+        };
+
+        // Trigger the model download.
+        summarizer = await window.ai.summarizer.create({
+            format: 'plain-text',
+            type: 'tl;dr',
+            length: 'long',
+            monitor: (m: AICreateMonitor) => m.addEventListener('downloadprogress', modelDownloadCallback),
+        });        
+        statusSpan.innerText = `Awaiting for input.`;
         button.disabled = false;
         inputTextArea.disabled = false;
-        statusSpan.innerText = `Awaiting for input.`;    
     } else {
+        const capabilites = await window.ai.summarizer.capabilities();
+        console.log(capabilites);
         statusSpan.innerText = `Your device doesn't support the Summarizer API.`;    
     }
   } else {
